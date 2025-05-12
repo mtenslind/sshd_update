@@ -27,10 +27,17 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+def parse_config_array(config_array):
+    # Parses out commented lines and empty newlines
+    parsed_list = [i for i in config_array if not(i.startswith("#")) and i != "\n"]
+    return parsed_list
 
 def main():
-    print(args.host)
-    print(args.config_file)
-    print(args.user)
+    with open(args.config_file, 'r') as template_file:
+        parameter_list = template_file.readlines()
+
+    parsed_list = parse_config_array(parameter_list)
+
+    print(parsed_list)
 
 main()
