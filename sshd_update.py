@@ -15,8 +15,8 @@ parser.add_argument(
 parser.add_argument(
     "-c",
     "--config_file",
-    help="configuration file location. Defaults to current directory",
-    default=os.getcwd(),
+    help="configuration file location. Defaults to sshd_config in the current working directory",
+    default=os.getcwd() + "/sshd_config",
 )
 parser.add_argument(
     "-u",
