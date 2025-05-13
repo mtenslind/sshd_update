@@ -63,7 +63,7 @@ def main():
     channel = transport.open_session()
     # Use custom sftp subsystem to read files with sudo
     channel.exec_command('sudo /usr/lib/openssh/sftp-server')
-    sftp = paramiko.SFTPClient(channel
+    sftp = paramiko.SFTPClient(channel)
 
     # Read remote config
     with sftp.open("/etc/ssh/sshd_config") as host_sshd:
