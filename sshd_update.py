@@ -26,6 +26,12 @@ parser.add_argument(
     help="User to use for SSH connection. Defaults to root",
     default="root"
 )
+parser.add_argument(
+    "-f",
+    "--force",
+    help="Do not ask for confirmation before applying options",
+    action="store_true"
+)
 
 args = parser.parse_args()
 
@@ -54,12 +60,28 @@ def main():
     sftp = paramiko.SFTPClient.from_transport(connection.get_transport())
     with sftp.open("/etc/ssh/sshd_config") as host_sshd:
         remote_parameter_list = host_sshd.readlines()
+    sftp.close()
 
     remote_parsed_list = parse_config_array(remote_parameter_list)
+
+    applicable_options = []
 
     for setting in local_parsed_list:
         if setting not in remote_parsed_list:
             print(f"The line '{setting[:-1]}' not found on the remote host")
+            if not args.force:
+                confirmation = input("Confirm? [Y/N] ")
+                if confirmation.lower() in ('y', 'yes'):
+                    applicable_options.append(setting)
+            else: applicable_options.append(setting)
+
+    if not applicable_options:
+        print("No options to apply")
+    else:
+        print("Applying options")
+        for option in applicable_options:
+            cmd = f"echo {option[:-1]} >> /etc/ssh/sshd_config"
+            (stdin, stdout, err) = connection.exec_command(cmd)
 
     connection.close()
 
