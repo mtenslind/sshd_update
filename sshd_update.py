@@ -46,14 +46,18 @@ def paramiko_connect(host, user):
 
 def main():
     with open(args.config_file, 'r') as template_file:
-        parameter_list = template_file.readlines()
+        local_parameter_list = template_file.readlines()
 
-    parsed_list = parse_config_array(parameter_list)
+    local_parsed_list = parse_config_array(local_parameter_list)
+    print(local_parsed_list)
 
     connection = paramiko_connect(args.host, args.user)
-    (stdin, stdout, stderr) = connection.exec_command("whoami")
-    output = stdout.read()
-    print(output)
+    sftp = paramiko.SFTPClient.from_transport(connection.get_transport())
+    with sftp.open("/etc/ssh/sshd_config") as host_sshd:
+        remote_parameter_list = host_sshd.readlines()
+
+    remote_parsed_list = parse_config_array(remote_parameter_list)
+    print(remote_parsed_list)
 
     connection.close()
 
