@@ -43,6 +43,7 @@ def parse_config_array(config_array):
 def paramiko_connect(host, user):
     client = paramiko.SSHClient()
     client.load_system_host_keys()
+    # Attempt key connection and fallback to password
     try:
         client.connect(host, port=22, username=user)
     except:
@@ -51,6 +52,7 @@ def paramiko_connect(host, user):
     return client
 
 def main():
+    # Load local template configuration
     with open(args.config_file, 'r') as template_file:
         local_parameter_list = template_file.readlines()
 
@@ -59,12 +61,14 @@ def main():
     connection = paramiko_connect(args.host, args.user)
     transport = connection.get_transport()
     channel = transport.open_session()
-#    channel.invoke_subsystem('sudo /usr/lib/openssh/sftp-server')
+    # Use custom sftp subsystem to read files with sudo
     channel.exec_command('sudo /usr/lib/openssh/sftp-server')
-    sftp = paramiko.SFTPClient(channel)
+    sftp = paramiko.SFTPClient(channel
 
+    # Read remote config
     with sftp.open("/etc/ssh/sshd_config") as host_sshd:
         remote_parameter_list = host_sshd.readlines()
+    # Close sftp channel
     sftp.close()
     channel.close()
 
@@ -72,6 +76,7 @@ def main():
 
     applicable_options = []
 
+    # Find differences and build list of options to apply
     for setting in local_parsed_list:
         if setting not in remote_parsed_list:
             print(f"The line '{setting[:-1]}' not found on the remote host")
@@ -84,6 +89,7 @@ def main():
     if not applicable_options:
         print("No options to apply")
     else:
+        # Apply options to remote config
         print("Applying options")
         for option in applicable_options:
             cmd = f"echo {option[:-1]} | sudo tee -a /etc/ssh/sshd_config"
