@@ -1,6 +1,17 @@
 # sshd_update
 Script for updating a remote hosts' sshd config from a template config file
 
+This script:
+
+- Gets the applied lines from the template
+- Gets existing lines from the remote host
+- Applies changes to the remote host
+
+## Requirements
+
+- Paramiko installed
+- Access to the remote host
+- The destination host user must have passwordless sudo configured
 
 ## Usage
 ```
