@@ -49,7 +49,6 @@ def main():
         local_parameter_list = template_file.readlines()
 
     local_parsed_list = parse_config_array(local_parameter_list)
-    print(local_parsed_list)
 
     connection = paramiko_connect(args.host, args.user)
     sftp = paramiko.SFTPClient.from_transport(connection.get_transport())
@@ -57,7 +56,10 @@ def main():
         remote_parameter_list = host_sshd.readlines()
 
     remote_parsed_list = parse_config_array(remote_parameter_list)
-    print(remote_parsed_list)
+
+    for setting in local_parsed_list:
+        if setting not in remote_parsed_list:
+            print(f"The line '{setting[:-1]}' not found on the remote host")
 
     connection.close()
 
