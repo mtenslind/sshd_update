@@ -57,10 +57,16 @@ def main():
     local_parsed_list = parse_config_array(local_parameter_list)
 
     connection = paramiko_connect(args.host, args.user)
-    sftp = paramiko.SFTPClient.from_transport(connection.get_transport())
+    transport = connection.get_transport()
+    channel = transport.open_session()
+#    channel.invoke_subsystem('sudo /usr/lib/openssh/sftp-server')
+    channel.exec_command('sudo /usr/lib/openssh/sftp-server')
+    sftp = paramiko.SFTPClient(channel)
+
     with sftp.open("/etc/ssh/sshd_config") as host_sshd:
         remote_parameter_list = host_sshd.readlines()
     sftp.close()
+    channel.close()
 
     remote_parsed_list = parse_config_array(remote_parameter_list)
 
@@ -80,7 +86,7 @@ def main():
     else:
         print("Applying options")
         for option in applicable_options:
-            cmd = f"echo {option[:-1]} >> /etc/ssh/sshd_config"
+            cmd = f"echo {option[:-1]} | sudo tee -a /etc/ssh/sshd_config"
             (stdin, stdout, err) = connection.exec_command(cmd)
 
     connection.close()
